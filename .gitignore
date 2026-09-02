@@ -1,0 +1,36 @@
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Maven Target Directory
+target/
+*.class
+
+# IDE and Editor Files
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.history/
+*.code-workspace
+.ionide/
+*.swp
+*.swo
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+

@@ -35,6 +35,29 @@
 3. **External Calls**: `OrderService` паралельно або послідовно через `flatMap`/`zip` робить неблокуючий запит до PostgreSQL через R2DBC та HTTP-запит до WireMock через `WebClient`.
 4. **Response Phase**: Коли дані готові, Netty повертає відповідь клієнту. Потік Event Loop не блокувався на жодному з етапів очікування I/O.
 
+### Mermaid Схема Архітектури та Взаємодії Components
+
+```mermaid
+graph TD
+    Client[Client / Browser] -->|HTTP Request| Netty[Netty Event Loop Server]
+    Netty -->|Non-blocking call| Controller[OrderController]
+    Controller -->|Mono/Flux| Service[OrderServiceImpl]
+    
+    subgraph Reactive Infrastructure Boundaries
+        Service -->|R2DBC Driver| DB[(PostgreSQL Database)]
+        Service -->|WebClient HTTP| WireMockDiscount[WireMock: Discount Service]
+        Service -->|WebClient HTTP| WireMockNotification[WireMock: Notification Service]
+    end
+
+    DB -->|Reactive Stream| Service
+    WireMockDiscount -->|Mono DiscountResponse| Service
+    WireMockNotification -->|Mono Void/Response| Service
+    
+    Service -->|Mono OrderResponse / Flux OrderResponse| Controller
+    Controller -->|JSON Response| Netty
+    Netty -->|HTTP Response| Client
+```
+
 ---
 
 ## 3. Технологічний стек

@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/api/v1/notifications"
+  },
+  "response": {
+    "status": 202,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "status": "ACCEPTED",
+      "message": "Notification queued successfully"
+    },
+    "fixedDelayMilliseconds": 50
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPattern": "/api/v1/discounts/.*"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "code": "SUMMER2026",
+      "percentage": 15.0,
+      "valid": true
+    },
+    "fixedDelayMilliseconds": 100
+  }
+}

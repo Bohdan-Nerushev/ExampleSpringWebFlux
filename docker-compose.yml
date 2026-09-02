@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: order_service_postgres
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  wiremock:
+    image: wiremock/wiremock:3.9.1
+    container_name: order_service_wiremock
+    ports:
+      - "${WIREMOCK_PORT:-8080}:8080"
+    volumes:
+      - ./wiremock/mappings:/home/wiremock/mappings
+    command: ["--global-response-templating"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://${WIREMOCK_HOST:localhost}:${WIREMOCK_PORT:8080}/__admin/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
