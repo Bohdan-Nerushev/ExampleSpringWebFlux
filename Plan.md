@@ -29,20 +29,6 @@
 4. Надсилає сповіщення про створення замовлення у відповіді на запит  (також зімітований у **WireMock**).
 5. Надає реактивні CRUD-ендпоінти для отримання списку замовлень (стрімінг через `Flux` / Server-Sent Events) та інформації про конкретне замовлення (`Mono`).
 
-### Архітектурна схема взаємодії компонентів
-
-```mermaid
-flowchart TD
-    Client[HTTP Client / Frontend] -->|Reactive HTTP Request| Router[Spring WebFlux REST Controller]
-    Router -->|Mono / Flux| Service[Order Service Layer]
-    
-    Service -->|R2DBC Non-blocking Query| Repository[Spring Data R2DBC Repository]
-    Repository -->|R2DBC Protocol| Postgres[(PostgreSQL DB)]
-    
-    Service -->|WebClient Reactive HTTP| ExternalClient[Discount & Notification вWebClient]
-    ExternalClient -->|Non-blocking HTTP| WireMock[WireMock Container]в
-```
-
 ### Реактивний потік даних (Data Flow)
 1. **Request Phase**: Запит потрапляє у Netty Event Loop thread.
 2. **Execution Phase**: Запит передається у `OrderController` -> `OrderService` без блокування потоку.
