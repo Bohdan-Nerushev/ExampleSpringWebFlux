@@ -27,7 +27,6 @@ public class OrderItem {
     private Long id;
 
     @NotNull(message = "Order ID must not be null")
-    @Size(max = 255, message = "Order ID must not exceed 255 characters")
     @Column("order_id")
     private Long orderId;
 
