@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: webflux-order-service
+
+  # R2DBC configuration for non-blocking reactive access
+  r2dbc:
+    url: r2dbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT:5432}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    pool:
+      initial-size: ${R2DBC_POOL_INITIAL_SIZE:5}
+      max-size: ${R2DBC_POOL_MAX_SIZE:20}
+
+  # JDBC DataSource configuration used strictly by Flyway startup migration
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT:5432}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  # Flyway Migration Configuration
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    locations: classpath:db/migration
+    schemas: public
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
+    baseline-version: ${FLYWAY_BASELINE_VERSION:0}
+    clean-disabled: true
+
+# Wiremock external integration service URLs
+integration:
+  wiremock:
+    host: ${WIREMOCK_HOST:localhost}
+    port: ${WIREMOCK_PORT:8080}
+    discount-url: http://${WIREMOCK_HOST:localhost}:${WIREMOCK_PORT:8080}/api/v1/discounts
+    notification-url: http://${WIREMOCK_HOST:localhost}:${WIREMOCK_PORT:8080}/api/v1/notifications
+
+logging:
+  level:
+    root: INFO
+    com.example.webflux: DEBUG
+    org.flywaydb: INFO
+    org.springframework.r2dbc: DEBUG
