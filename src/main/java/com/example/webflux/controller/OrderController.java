@@ -1,6 +1,7 @@
 package com.example.webflux.controller;
 
 import com.example.webflux.dto.request.CreateOrderRequest;
+import com.example.webflux.dto.response.OrderAnalyticsResponse;
 import com.example.webflux.dto.response.OrderResponse;
 import com.example.webflux.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -79,6 +80,21 @@ public class OrderController {
         return orderService.getOrderById(id).map(ResponseEntity::ok)
                 .doOnSuccess(response -> log.debug("Found order with ID: {}", id))
                 .doOnError(e -> log.warn("Order not found with ID: {}", id));
+    }
+
+    @GetMapping("/analytics")
+    @Operation(
+        summary = "Get order analytics", 
+        description = "Combines count and total revenue calculations asynchronously using Mono.zip.")
+    @ApiResponse(
+        responseCode = "200", 
+        description = "Order analytics summary",
+        content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE, 
+                schema = @Schema(implementation = OrderAnalyticsResponse.class)))
+    public Mono<OrderAnalyticsResponse> getOrderAnalytics() {
+        log.debug("REST request to fetch order analytics");
+        return orderService.getOrderAnalytics();
     }
 
     @GetMapping

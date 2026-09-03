@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -143,6 +144,25 @@ class OrderServiceTest {
                     assertThat(response.getId()).isEqualTo(2L);
                     assertThat(response.getDiscountAmount()).isEqualByComparingTo("0.00");
                     assertThat(response.getTotalAmount()).isEqualByComparingTo("100.00");
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("getOrderAnalytics calculates totals in parallel using Mono.zip")
+    void getOrderAnalyticsSuccess() {
+        Order order1 = Order.builder().id(1L).totalAmount(new BigDecimal("100.00")).discountAmount(new BigDecimal("10.00")).build();
+        Order order2 = Order.builder().id(2L).totalAmount(new BigDecimal("200.00")).discountAmount(new BigDecimal("20.00")).build();
+
+        when(orderRepository.count()).thenReturn(Mono.just(2L));
+        when(orderRepository.findAll()).thenReturn(Flux.just(order1, order2));
+
+        StepVerifier.create(orderService.getOrderAnalytics())
+                .assertNext(analytics -> {
+                    assertThat(analytics.getTotalOrders()).isEqualTo(2L);
+                    assertThat(analytics.getTotalRevenue()).isEqualByComparingTo("300.00");
+                    assertThat(analytics.getAverageOrderValue()).isEqualByComparingTo("150.00");
+                    assertThat(analytics.getTotalDiscountsApplied()).isEqualByComparingTo("30.00");
                 })
                 .verifyComplete();
     }

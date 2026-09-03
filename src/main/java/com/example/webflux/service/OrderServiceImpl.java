@@ -9,6 +9,7 @@ import com.example.webflux.dto.internal.DiscountCalculation;
 import com.example.webflux.dto.request.CreateOrderItemRequest;
 import com.example.webflux.dto.request.CreateOrderRequest;
 import com.example.webflux.dto.response.DiscountResponse;
+import com.example.webflux.dto.response.OrderAnalyticsResponse;
 import com.example.webflux.dto.response.OrderItemResponse;
 import com.example.webflux.dto.response.OrderResponse;
 import com.example.webflux.exception.OrderNotFoundException;
@@ -91,6 +92,48 @@ public class OrderServiceImpl implements OrderService {
                         .map(orderMapper::toOrderItemResponse)
                         .collectList()
                         .map(items -> orderMapper.toOrderResponse(order, items)));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Mono<OrderAnalyticsResponse> getOrderAnalytics() {
+        log.info("Calculating order analytics asynchronously using Mono.zip");
+
+        Mono<Long> totalOrdersMono = orderRepository.count();
+
+        Mono<List<Order>> allOrdersMono = orderRepository.findAll().collectList();
+
+        return Mono.zip(totalOrdersMono, allOrdersMono)
+                .map(tuple -> {
+                    Long count = tuple.getT1();
+                    List<Order> orders = tuple.getT2();
+
+                    if (count == 0 || orders.isEmpty()) {
+                        return OrderAnalyticsResponse.builder()
+                                .totalOrders(0L)
+                                .totalRevenue(BigDecimal.ZERO)
+                                .averageOrderValue(BigDecimal.ZERO)
+                                .totalDiscountsApplied(BigDecimal.ZERO)
+                                .build();
+                    }
+
+                    BigDecimal totalRevenue = orders.stream()
+                            .map(Order::getTotalAmount)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    BigDecimal totalDiscounts = orders.stream()
+                            .map(Order::getDiscountAmount)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    BigDecimal averageOrderValue = totalRevenue.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP);
+
+                    return OrderAnalyticsResponse.builder()
+                            .totalOrders(count)
+                            .totalRevenue(totalRevenue)
+                            .averageOrderValue(averageOrderValue)
+                            .totalDiscountsApplied(totalDiscounts)
+                            .build();
+                });
     }
 
     private Mono<DiscountCalculation> getDiscountCalculation(String promoCode, BigDecimal rawTotal) {
