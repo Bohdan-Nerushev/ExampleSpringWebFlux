@@ -1,16 +1,35 @@
-# Stage 1: Build application JAR
-FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
+# Stage 1: Build the application using Maven
+FROM maven:3.9-eclipse-temurin-25-alpine AS build
 WORKDIR /app
+
+
+# Copy pom.xml and download dependencies for caching
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
+RUN mvn dependency:go-offline --no-transfer-progress
+
+
+# Copy source code and build jar
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-# Stage 2: Runtime container
-FROM eclipse-temurin:21-jre-alpine
+
+# Stage 2: Runtime
+FROM eclipse-temurin:25-jre-alpine
+
+# Set non-root user for security
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
 WORKDIR /app
-COPY --from=builder /app/target/webflux-order-service-0.0.1-SNAPSHOT.jar app.jar
 
-EXPOSE 8080
 
-ENTRYPOINT ["java", "-XX:+AllowRedefinitionToAddDeleteMethods", "-jar", "app.jar"]
+# Copy the built jar from the build stage
+COPY --from=build /app/target/webflux-order-service-*.jar app.jar
+
+
+# Expose port 8090
+EXPOSE 8090
+
+
+# Command to run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]

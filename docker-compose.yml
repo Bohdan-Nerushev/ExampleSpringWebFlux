@@ -6,10 +6,10 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-orderdb}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-orderdb}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -24,7 +24,7 @@ services:
       - ./wiremock/mappings:/home/wiremock/mappings
     command: ["--global-response-templating"]
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/__admin/health || exit 1"]
+      test: ["CMD-SHELL", "wget -O /dev/null -q http://localhost:8080/__admin/mappings || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -38,12 +38,12 @@ services:
     ports:
       - "${APP_PORT:-8080}:8080"
     environment:
-      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/${POSTGRES_DB:-orderdb}
-      SPRING_R2DBC_USERNAME: ${POSTGRES_USER:-postgres}
-      SPRING_R2DBC_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-orderdb}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_R2DBC_USERNAME: ${POSTGRES_USER}
+      SPRING_R2DBC_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SERVICES_DISCOUNT_BASE-URL: http://wiremock:8080/api/v1/discounts
       SERVICES_NOTIFICATION_BASE-URL: http://wiremock:8080/api/v1/notifications
     depends_on:

@@ -2,17 +2,6 @@
 
 Reactive order management microservice built on **Spring Boot 3.x (WebFlux)**, **Spring Data R2DBC**, **PostgreSQL**, **Flyway**, **WebClient**, **Resilience4j**, **BlockHound**, and **OpenAPI / Swagger**.
 
----
-
-## 🚀 Key Features & Architecture
-
-- **Fully Non-Blocking I/O Stack (Reactive WebFlux & Netty)**: Zero `.block()` calls, JDBC, or blocking threads in production code.
-- **Reactive Database Access (R2DBC)**: Utilizes `r2dbc-postgresql` for asynchronous interactions with PostgreSQL.
-- **Automated Database Migrations (Flyway)**: Manages database schema versioning.
-- **External Integration via WebClient**: Asynchronous discount retrieval and notification dispatch guarded by `timeout` and `retryWhen` (backoff).
-- **Parallel Data Aggregation (`Mono.zip`)**: Executes independent queries concurrently to calculate aggregate order analytics.
-- **Non-Blocking Environment Audit (BlockHound)**: Automatically detects accidental blocking calls (`Thread.sleep`, I/O) at runtime and during testing.
-- **API Documentation (Swagger UI / OpenAPI 3.0)**: Interactive specification for REST and SSE endpoints.
 
 ---
 
@@ -34,8 +23,8 @@ Before running the application, copy `.env.example` to `.env` and adjust the var
 
 ```dotenv
 POSTGRES_DB=orderdb
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
+POSTGRES_USER=
+POSTGRES_PASSWORD=
 POSTGRES_PORT=5432
 WIREMOCK_PORT=8081
 APP_PORT=8080
@@ -78,7 +67,7 @@ mvn spring-boot:run
 Execute the complete test suite (Unit tests, BlockHound, WireMock, and Testcontainers integration tests):
 
 ```bash
-mvn clean test
+mvn clean install
 ```
 
 ### Test Suite Overview:
