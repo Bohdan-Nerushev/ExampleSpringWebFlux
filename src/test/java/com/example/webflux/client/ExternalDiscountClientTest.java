@@ -70,4 +70,14 @@ class ExternalDiscountClientTest {
                 .expectError(ExternalServiceException.class)
                 .verify();
     }
+
+    @Test
+    @DisplayName("Should throw ExternalServiceException on 404 Not Found error")
+    void getDiscountNotFound() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(404));
+
+        StepVerifier.create(discountClient.getDiscount("INVALID_PROMO"))
+                .expectError(ExternalServiceException.class)
+                .verify();
+    }
 }

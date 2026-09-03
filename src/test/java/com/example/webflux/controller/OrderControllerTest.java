@@ -120,4 +120,28 @@ class OrderControllerTest {
                 .jsonPath("$[0].id").isEqualTo(1)
                 .jsonPath("$[1].id").isEqualTo(2);
     }
+
+    @Test
+    @DisplayName("GET /api/v1/orders/analytics - Successfully return order analytics")
+    void getOrderAnalyticsSuccess() {
+        com.example.webflux.dto.response.OrderAnalyticsResponse analyticsResponse =
+                com.example.webflux.dto.response.OrderAnalyticsResponse.builder()
+                        .totalOrders(5L)
+                        .totalRevenue(new BigDecimal("500.00"))
+                        .averageOrderValue(new BigDecimal("100.00"))
+                        .totalDiscountsApplied(new BigDecimal("50.00"))
+                        .build();
+
+        when(orderService.getOrderAnalytics()).thenReturn(Mono.just(analyticsResponse));
+
+        webTestClient.get()
+                .uri("/api/v1/orders/analytics")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.totalOrders").isEqualTo(5)
+                .jsonPath("$.totalRevenue").isEqualTo(500.00)
+                .jsonPath("$.averageOrderValue").isEqualTo(100.00)
+                .jsonPath("$.totalDiscountsApplied").isEqualTo(50.00);
+    }
 }
