@@ -106,4 +106,44 @@ class OrderServiceTest {
                 .expectError(OrderNotFoundException.class)
                 .verify();
     }
+
+    @Test
+    @DisplayName("Create order falls back to 0% discount when discount client fails")
+    void createOrderFallbackWhenDiscountFails() {
+        CreateOrderItemRequest itemRequest = new CreateOrderItemRequest("PROD-1", 1, new BigDecimal("100.00"));
+        CreateOrderRequest request = new CreateOrderRequest("CUST-1", "BROKENPROMO", List.of(itemRequest));
+
+        Order savedOrder = Order.builder()
+                .id(2L)
+                .customerId("CUST-1")
+                .status(OrderStatus.NEW)
+                .totalAmount(new BigDecimal("100.00"))
+                .discountAmount(BigDecimal.ZERO)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+
+        OrderItem savedItem = OrderItem.builder()
+                .id(20L)
+                .orderId(2L)
+                .productId("PROD-1")
+                .quantity(1)
+                .price(new BigDecimal("100.00"))
+                .build();
+
+        when(discountClient.getDiscount("BROKENPROMO"))
+                .thenReturn(Mono.error(new com.example.webflux.exception.ExternalServiceException("Service Unavailable")));
+        when(orderRepository.save(any(Order.class))).thenReturn(Mono.just(savedOrder));
+        when(orderItemRepository.save(any(OrderItem.class))).thenReturn(Mono.just(savedItem));
+        when(notificationClient.sendNotification(anyLong(), any(), any()))
+                .thenReturn(Mono.just(new NotificationResponse("ACCEPTED", "Notification queued")));
+
+        StepVerifier.create(orderService.createOrder(request))
+                .assertNext(response -> {
+                    assertThat(response.getId()).isEqualTo(2L);
+                    assertThat(response.getDiscountAmount()).isEqualByComparingTo("0.00");
+                    assertThat(response.getTotalAmount()).isEqualByComparingTo("100.00");
+                })
+                .verifyComplete();
+    }
 }

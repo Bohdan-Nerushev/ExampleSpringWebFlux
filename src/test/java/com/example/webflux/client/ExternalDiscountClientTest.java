@@ -1,6 +1,6 @@
 package com.example.webflux.client;
 
-import com.example.webflux.dto.response.DiscountResponse;
+import com.example.webflux.exception.ExternalServiceException;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
@@ -11,7 +11,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.test.StepVerifier;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -60,5 +59,15 @@ class ExternalDiscountClientTest {
                     assertThat(response.getValid()).isTrue();
                 })
                 .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should throw ExternalServiceException on 500 error")
+    void getDiscountServerError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(500));
+
+        StepVerifier.create(discountClient.getDiscount("FAIL500"))
+                .expectError(ExternalServiceException.class)
+                .verify();
     }
 }
